@@ -92,36 +92,50 @@ export const handleUltravoxWebhook = asyncHandler(async (req, res) => {
  * @route   POST /api/webhooks/twilio/twiml
  */
 export const handleTwilioTwiML = asyncHandler(async (req, res) => {
-    const { patient_id } = req.query;
-    console.log(`[Twilio Webhook] Received TwiML request for patient: ${patient_id}`);
+  const { patient_id } = req.query;
+  console.log(
+    `[Twilio Webhook] Received TwiML request for patient: ${patient_id}`,
+  );
 
-    const twiml = new VoiceResponse();
-    
-    try {
-        // Fetch patient to get diagnosis
-        const patient = await prisma.patient.findUnique({ where: { id: patient_id } });
-        
-        if (!patient) {
-            twiml.say({ voice: 'alice' }, "Hello, sorry I could not find your records. Goodbye.");
-            res.type('text/xml');
-            return res.send(twiml.toString());
-        }
+  const twiml = new VoiceResponse();
 
-        // Initialize Ultravox specific to this patient
-        const ultravoxData = await createUltravoxCall(patient.name, patient.primary_diagnosis, patient_id);
-        
-        // Output connection Stream to Twilio format
-        const connect = twiml.connect();
-        connect.stream({ url: ultravoxData.joinUrl });
-        
-        console.log(`[Ultravox] Connected TwiML to: ${ultravoxData.joinUrl}`);
-    } catch (e) {
-        console.error("Error setting up TwiML/Ultravox:", e);
-        twiml.say({ voice: 'alice' }, "We are experiencing technical difficulties. We will call back later.");
+  try {
+    // Fetch patient to get diagnosis
+    const patient = await prisma.patient.findUnique({
+      where: { id: patient_id },
+    });
+
+    if (!patient) {
+      twiml.say(
+        { voice: "alice" },
+        "Hello, sorry I could not find your records. Goodbye.",
+      );
+      res.type("text/xml");
+      return res.send(twiml.toString());
     }
 
-    res.type('text/xml');
-    res.send(twiml.toString());
+    // Initialize Ultravox specific to this patient
+    const ultravoxData = await createUltravoxCall(
+      patient.name,
+      patient.primary_diagnosis,
+      patient_id,
+    );
+
+    // Output connection Stream to Twilio format
+    const connect = twiml.connect();
+    connect.stream({ url: ultravoxData.joinUrl });
+
+    console.log(`[Ultravox] Connected TwiML to: ${ultravoxData.joinUrl}`);
+  } catch (e) {
+    console.error("Error setting up TwiML/Ultravox:", e);
+    twiml.say(
+      { voice: "alice" },
+      "We are experiencing technical difficulties. We will call back later.",
+    );
+  }
+
+  res.type("text/xml");
+  res.send(twiml.toString());
 });
 
 /**
@@ -129,17 +143,17 @@ export const handleTwilioTwiML = asyncHandler(async (req, res) => {
  * @route   POST /api/webhooks/twilio/status
  */
 export const handleTwilioStatus = asyncHandler(async (req, res) => {
-    const { CallSid, CallStatus } = req.body;
-    console.log(`[Twilio Status] Call ${CallSid} is now ${CallStatus}`);
+  const { CallSid, CallStatus } = req.body;
+  console.log(`[Twilio Status] Call ${CallSid} is now ${CallStatus}`);
 
-    try {
-        await prisma.callLog.updateMany({
-            where: { call_id: CallSid },
-            data: { status: CallStatus }
-        });
-    } catch (error) {
-        console.error("Failed to update call status:", error.message);
-    }
+  try {
+    await prisma.callLog.updateMany({
+      where: { call_id: CallSid },
+      data: { status: CallStatus },
+    });
+  } catch (error) {
+    console.error("Failed to update call status:", error.message);
+  }
 
-    res.status(200).send("OK");
+  res.status(200).send("OK");
 });
