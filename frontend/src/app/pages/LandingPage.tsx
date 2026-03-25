@@ -282,57 +282,87 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-card p-8 rounded-xl shadow-md">
-              <Phone className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl mb-3 text-primary">
-                Automated Voice Calls
-              </h3>
-              <p className="text-muted-foreground">
-                Scheduled follow-up calls on Day 1, 3, 7, 14 post-discharge
-              </p>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-8 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30">
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center justify-center rounded-xl border border-border/60 bg-background/40 p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.03]">
+                  <Phone className="w-7 h-7 text-primary transition-transform duration-300 group-hover:-rotate-3" />
+                </div>
+                <h3 className="text-xl mb-3 text-primary">
+                  Automated Voice Calls
+                </h3>
+                <p className="text-muted-foreground">
+                  Scheduled follow-up calls on Day 1, 3, 7, 14 post-discharge
+                </p>
+              </div>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-md">
-              <Languages className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl mb-3 text-primary">
-                Multilingual Support
-              </h3>
-              <p className="text-muted-foreground">
-                Hindi, English + 10+ Indian regional languages via Bhashini AI
-              </p>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-8 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30">
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center justify-center rounded-xl border border-border/60 bg-background/40 p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.03]">
+                  <Languages className="w-7 h-7 text-primary transition-transform duration-300 group-hover:-rotate-3" />
+                </div>
+                <h3 className="text-xl mb-3 text-primary">
+                  Multilingual Support
+                </h3>
+                <p className="text-muted-foreground">
+                  Hindi, English + 10+ Indian regional languages via Bhashini AI
+                </p>
+              </div>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-md">
-              <BarChart3 className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl mb-3 text-primary">AI Risk Scoring</h3>
-              <p className="text-muted-foreground">
-                Real-time classification: Low, Medium, High, Critical
-              </p>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-8 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30">
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center justify-center rounded-xl border border-border/60 bg-background/40 p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.03]">
+                  <BarChart3 className="w-7 h-7 text-primary transition-transform duration-300 group-hover:-rotate-3" />
+                </div>
+                <h3 className="text-xl mb-3 text-primary">AI Risk Scoring</h3>
+                <p className="text-muted-foreground">
+                  Real-time classification: Low, Medium, High, Critical
+                </p>
+              </div>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-md">
-              <Bell className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl mb-3 text-primary">Instant Alerts</h3>
-              <p className="text-muted-foreground">
-                SMS, WhatsApp, push notifications on High/Critical risk
-                detection
-              </p>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-8 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30">
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center justify-center rounded-xl border border-border/60 bg-background/40 p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.03]">
+                  <Bell className="w-7 h-7 text-primary transition-transform duration-300 group-hover:-rotate-3" />
+                </div>
+                <h3 className="text-xl mb-3 text-primary">Instant Alerts</h3>
+                <p className="text-muted-foreground">
+                  SMS, WhatsApp, push notifications on High/Critical risk
+                  detection
+                </p>
+              </div>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-md">
-              <Heart className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl mb-3 text-primary">Doctor Dashboard</h3>
-              <p className="text-muted-foreground">
-                Real-time patient monitoring ranked by risk level
-              </p>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-8 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30">
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center justify-center rounded-xl border border-border/60 bg-background/40 p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.03]">
+                  <Heart className="w-7 h-7 text-primary transition-transform duration-300 group-hover:-rotate-3" />
+                </div>
+                <h3 className="text-xl mb-3 text-primary">Doctor Dashboard</h3>
+                <p className="text-muted-foreground">
+                  Real-time patient monitoring ranked by risk level
+                </p>
+              </div>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-md">
-              <Calendar className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl mb-3 text-primary">Smart Scheduling</h3>
-              <p className="text-muted-foreground">
-                Auto-generated follow-up schedules based on diagnosis
-              </p>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md p-8 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30">
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center justify-center rounded-xl border border-border/60 bg-background/40 p-3 shadow-sm transition-transform duration-300 group-hover:scale-[1.03]">
+                  <Calendar className="w-7 h-7 text-primary transition-transform duration-300 group-hover:-rotate-3" />
+                </div>
+                <h3 className="text-xl mb-3 text-primary">Smart Scheduling</h3>
+                <p className="text-muted-foreground">
+                  Auto-generated follow-up schedules based on diagnosis
+                </p>
+              </div>
             </div>
           </div>
         </div>
