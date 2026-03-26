@@ -93,8 +93,9 @@ export const handleUltravoxWebhook = asyncHandler(async (req, res) => {
  */
 export const handleTwilioTwiML = asyncHandler(async (req, res) => {
   const { patient_id } = req.query;
+  const CallSid = req.body.CallSid || req.query.CallSid;
   console.log(
-    `[Twilio Webhook] Received TwiML request for patient: ${patient_id}`,
+    `[Twilio Webhook] Received TwiML request for patient: ${patient_id}, CallSid: ${CallSid}`,
   );
 
   const twiml = new VoiceResponse();
@@ -119,6 +120,7 @@ export const handleTwilioTwiML = asyncHandler(async (req, res) => {
       patient.name,
       patient.primary_diagnosis,
       patient_id,
+      CallSid
     );
 
     // Output connection Stream to Twilio format
