@@ -68,7 +68,9 @@ export default function SignIn() {
                 className="flex flex-col items-center justify-center p-3 border border-border rounded-xl hover:bg-primary/5 hover:border-primary transition-all group"
               >
                 <User className="w-6 h-6 text-muted-foreground group-hover:text-primary mb-1" />
-                <span className="text-xs font-medium text-muted-foreground group-hover:text-primary">Demo Doctor</span>
+                <span className="text-xs font-medium text-muted-foreground group-hover:text-primary">
+                  Demo Doctor
+                </span>
               </button>
               <button
                 type="button"
@@ -76,7 +78,9 @@ export default function SignIn() {
                 className="flex flex-col items-center justify-center p-3 border border-border rounded-xl hover:bg-primary/5 hover:border-primary transition-all group"
               >
                 <ShieldCheck className="w-6 h-6 text-muted-foreground group-hover:text-primary mb-1" />
-                <span className="text-xs font-medium text-muted-foreground group-hover:text-primary">Demo Admin</span>
+                <span className="text-xs font-medium text-muted-foreground group-hover:text-primary">
+                  Demo Admin
+                </span>
               </button>
             </div>
 
