@@ -2,21 +2,31 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { PrismaClient } from "@prisma/client";
+import redis from "../config/redis.js";
 
 const prisma = new PrismaClient({});
 
 /**
  * @desc    Get all patients
  * @route   GET /api/patients
- * @access  Private (Mocked for now)
+ * @access  Private
  */
 export const getAllPatients = asyncHandler(async (req, res) => {
   try {
+    const cachedPatients = await redis.get("patients:all");
+    if (cachedPatients) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, JSON.parse(cachedPatients), "Patients retrieved successfully from cache"));
+    }
+
     const patients = await prisma.patient.findMany({
       orderBy: {
         created_at: "desc",
       },
     });
+
+    await redis.set("patients:all", JSON.stringify(patients), "EX", 3600); // Cache for 1 hour
 
     return res
       .status(200)
@@ -50,6 +60,9 @@ export const addPatient = asyncHandler(async (req, res) => {
         primary_diagnosis: primary_diagnosis || "General",
       },
     });
+
+    // Invalidate the patients cache
+    await redis.del("patients:all");
 
     return res
       .status(201)

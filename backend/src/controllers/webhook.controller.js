@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { PrismaClient } from "@prisma/client";
 import twilio from "twilio";
 import { createUltravoxCall } from "../services/ultravox.service.js";
+import redis from "../config/redis.js";
 
 const prisma = new PrismaClient();
 const VoiceResponse = twilio.twiml.VoiceResponse;
@@ -57,6 +58,9 @@ export const handleUltravoxWebhook = asyncHandler(async (req, res) => {
         completed_at: new Date(),
       },
     });
+    
+    // Invalidate the calls cache
+    await redis.del("calls:all");
   } catch (dbError) {
     console.error("Prisma DB Error:", dbError);
     throw new ApiError(500, "Failed to log call data into Database", [
@@ -153,6 +157,9 @@ export const handleTwilioStatus = asyncHandler(async (req, res) => {
       where: { call_id: CallSid },
       data: { status: CallStatus },
     });
+    
+    // Invalidate the calls cache
+    await redis.del("calls:all");
   } catch (error) {
     console.error("Failed to update call status:", error.message);
   }
