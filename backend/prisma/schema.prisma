@@ -13,12 +13,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Hospital {
+  id          String   @id @default(uuid())
+  supabase_id String   @unique // Linked to Supabase Auth user id
+  name        String
+  email       String   @unique
+  phone       String?
+  address     String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  doctors     Doctor[]
+  patients    Patient[]
+
+  @@map("hospitals")
+}
+
+model Doctor {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  specialty   String?
+  phone       String?
+  hospital    Hospital @relation(fields: [hospital_id], references: [id])
+  hospital_id String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  patients    Patient[]
+
+  @@map("doctors")
+}
+
 model Patient {
   id                  String     @id @default(uuid())
   name                String
   phone_number        String
   language_preference String     @default("Hindi")
   primary_diagnosis   String     @default("General")
+  hospital            Hospital   @relation(fields: [hospital_id], references: [id])
+  hospital_id         String
+  doctor              Doctor?    @relation(fields: [doctor_id], references: [id])
+  doctor_id           String?
   created_at          DateTime   @default(now())
   updated_at          DateTime   @updatedAt
   call_logs           CallLog[]

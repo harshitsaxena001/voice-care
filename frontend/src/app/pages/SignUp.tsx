@@ -30,7 +30,8 @@ export default function SignUp() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // 1. Sign up with Supabase Auth
+      const { data, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -38,14 +39,41 @@ export default function SignUp() {
             hospitalName: formData.hospitalName,
             adminName: formData.adminName,
             phone: formData.phone,
-          }
-        }
+          },
+        },
       });
 
-      if (error) {
-        throw error;
+      if (authError) {
+        throw authError;
       }
-      
+
+      if (data.session) {
+        // 2. Register Hospital in our Database
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/hospitals/register`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${data.session.access_token}`,
+            },
+            body: JSON.stringify({
+              name: formData.hospitalName,
+              email: formData.email,
+              phone: formData.phone,
+              address: "", // Can be added later in settings
+            }),
+          },
+        );
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            result.message || "Failed to register hospital details",
+          );
+        }
+      }
+
       // Optionally redirect to dashboard or verification page
       navigate("/dashboard");
     } catch (err: any) {
@@ -132,9 +160,11 @@ export default function SignUp() {
                 className="h-11 shadow-sm"
               />
             </div>
-            
+
             {error && (
-              <div className="text-sm font-medium text-destructive">{error}</div>
+              <div className="text-sm font-medium text-destructive">
+                {error}
+              </div>
             )}
 
             <Button
