@@ -16,15 +16,26 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
  * @access  Public (Should verify signature in prod)
  */
 export const handleUltravoxWebhook = asyncHandler(async (req, res) => {
-  // 1. Extract call details from Ultravox payload
-  const { 
-    call_id, 
-    patient_id, 
-    transcript, 
-    extracted_symptoms, 
-    risk_score, 
-    requested_appointment_time 
-  } = req.body;
+  console.log("[Webhook] raw body:", JSON.stringify(req.body, null, 2));
+
+  // Determine payload source (sometimes wrapped by Ultravox or tool invocation structure)
+  const payload = req.body.parameters || req.body.arguments || req.body;
+
+  const call_id = payload.call_id || req.body.call_id || req.body.callId;
+  const patient_id = payload.patient_id || req.body.patient_id;
+  const transcript = payload.transcript || req.body.transcript || "";
+  let extracted_symptoms = payload.extracted_symptoms || req.body.extracted_symptoms || [];
+  
+  if (typeof extracted_symptoms === 'string') {
+    try {
+      extracted_symptoms = JSON.parse(extracted_symptoms);
+    } catch(e) {
+      extracted_symptoms = [extracted_symptoms];
+    }
+  }
+
+  const risk_score = payload.risk_score || req.body.risk_score || "Low";
+  const requested_appointment_time = payload.requested_appointment_time || req.body.requested_appointment_time;
 
   if (!call_id || !patient_id) {
     throw new ApiError(
@@ -129,7 +140,7 @@ export const handleUltravoxWebhook = asyncHandler(async (req, res) => {
  * @route   POST /api/webhooks/twilio/twiml
  */
 export const handleTwilioTwiML = asyncHandler(async (req, res) => {
-  const { patient_id } = req.query;
+  const { patient_id, language } = req.query;
   const CallSid = req.body.CallSid || req.query.CallSid;
   console.log(
     `[Twilio Webhook] Received TwiML request for patient: ${patient_id}, CallSid: ${CallSid}`,
@@ -152,13 +163,20 @@ export const handleTwilioTwiML = asyncHandler(async (req, res) => {
       return res.send(twiml.toString());
     }
 
+    // Construct the enriched patient object for dynamic prompt
+    const ultravoxPatient = {
+      id: patient.id,
+      name: patient.name,
+      diagnosis: patient.primary_diagnosis || "General Health",
+      language: language || patient.language_preference || "English",
+      flowType: patient.flow_type || "Screening",
+    };
+
     // Initialize Ultravox specific to this patient
     const ultravoxData = await createUltravoxCall(
-      patient.name,
-      patient.primary_diagnosis,
-      patient_id,
+      ultravoxPatient,
       CallSid,
-      patient.flow_type || "Screening"
+      ultravoxPatient.flowType
     );
 
     // Output connection Stream to Twilio format

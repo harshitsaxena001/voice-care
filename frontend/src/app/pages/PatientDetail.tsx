@@ -13,6 +13,7 @@ export default function PatientDetail() {
   const { patients, loading } = usePatients();
   const { calls } = useCalls();
   const [triggering, setTriggering] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("English");
 
   const patient = patients.find(p => p.id === id);
   const callHistory = calls.filter(c => c.patient_id === id);
@@ -22,7 +23,7 @@ export default function PatientDetail() {
       setTriggering(true);
       await fetchWithAuth('/calls/trigger', {
         method: 'POST',
-        body: JSON.stringify({ patient_id: patient?.id })
+        body: JSON.stringify({ patient_id: patient?.id, language: selectedLanguage })
       });
       toast.success('Call triggered successfully!');
     } catch(err: any) {
@@ -100,14 +101,27 @@ export default function PatientDetail() {
             <div className={`px-4 py-2 rounded-full ${getRiskBadgeClass(patient.riskLevel)} text-lg capitalize`}>
               {patient.riskLevel} Risk
             </div>
-            <button 
-              onClick={handleCallNow}
-              disabled={triggering}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Phone className="w-4 h-4" />
-              {triggering ? "Initiating Call..." : "Call Patient Now"}
-            </button>
+            <div className="flex items-center gap-2 mt-2">
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="bg-card border border-border text-sm rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+                <option value="Bengali">Bengali</option>
+              </select>
+              <button 
+                onClick={handleCallNow}
+                disabled={triggering}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Phone className="w-4 h-4" />
+                {triggering ? "Initiating Call..." : "Call Patient Now"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -198,26 +212,32 @@ export default function PatientDetail() {
               <div className="mb-3">
                 <h4 className="text-sm mb-2 text-muted-foreground">Symptoms Reported:</h4>
                 <div className="flex flex-wrap gap-2">
-                  {Array.isArray(call.symptoms) 
-                    ? call.symptoms.map((symptom: string, idx: number) => (
+                  {(() => {
+                    let symps = call.symptoms;
+                    if (typeof symps === 'string') {
+                      try { symps = JSON.parse(symps); } catch(e) {}
+                    }
+                    if (Array.isArray(symps) && symps.length > 0) {
+                      return symps.map((symptom: string, idx: number) => (
                         <span key={idx} className="bg-secondary px-3 py-1 rounded-full text-sm">
                           {symptom}
                         </span>
-                      ))
-                    : typeof call.symptoms === 'string'
-                      ? <span className="bg-secondary px-3 py-1 rounded-full text-sm">{call.symptoms}</span>
-                      : typeof call.symptoms === 'object' && call.symptoms !== null
-                        ? Object.values(call.symptoms).map((symptom: any, idx: number) => (
-                            <span key={idx} className="bg-secondary px-3 py-1 rounded-full text-sm">
-                              {String(symptom)}
-                            </span>
-                          ))
-                        : <span className="text-sm text-muted-foreground italic">No symptoms reported</span>
-                  }
+                      ));
+                    } else if (typeof symps === 'string' && symps.trim() !== '' && symps !== '[]' && symps !== '{}') {
+                      return <span className="bg-secondary px-3 py-1 rounded-full text-sm">{symps}</span>;
+                    } else if (typeof symps === 'object' && symps !== null && Object.keys(symps).length > 0) {
+                      return Object.values(symps).map((symptom: any, idx: number) => (
+                        <span key={idx} className="bg-secondary px-3 py-1 rounded-full text-sm">
+                          {String(symptom)}
+                        </span>
+                      ));
+                    }
+                    return <span className="text-sm text-muted-foreground italic">No symptoms reported</span>;
+                  })()}
                 </div>
               </div>
 
-              {call.structured_transcript && typeof call.structured_transcript === 'object' && call.structured_transcript !== null && !Array.isArray(call.structured_transcript) && (
+              {call.structured_transcript && typeof call.structured_transcript === 'object' && call.structured_transcript !== null && !Array.isArray(call.structured_transcript) && Object.keys(call.structured_transcript).length > 0 && (
                 <div className="mb-4 bg-muted/30 p-3 rounded-lg border border-border">
                   <h4 className="text-sm font-semibold mb-2 text-primary">Structured AI Extraction</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
