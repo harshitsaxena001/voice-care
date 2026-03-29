@@ -1,55 +1,84 @@
 import { Calendar, Clock, Phone, CheckCircle, XCircle } from "lucide-react";
 import { useAppointments } from "../data/useAppointments";
+import { usePatients } from "../data/usePatients";
+import { useState } from "react";
+import { toast } from "sonner";
+import { fetchWithAuth } from "../../lib/api";
 
 export default function Schedule() {
   const { appointments, approveAppointment } = useAppointments();
-  // Mock schedule data
-  const schedules = [
-    {
-      id: "S001",
-      patientId: "P001",
-      patientName: "Rajesh Kumar",
-      scheduledAt: "2026-03-24T10:00:00",
-      status: "pending",
-      callDay: "Day 7",
-    },
-    {
-      id: "S002",
-      patientId: "P002",
-      patientName: "Priya Sharma",
-      scheduledAt: "2026-03-24T11:30:00",
-      status: "pending",
-      callDay: "Day 7",
-    },
-    {
-      id: "S003",
-      patientId: "P003",
-      patientName: "Amit Patel",
-      scheduledAt: "2026-03-24T14:00:00",
-      status: "pending",
-      callDay: "Day 3",
-    },
-    {
-      id: "S004",
-      patientId: "P004",
-      patientName: "Lakshmi Reddy",
-      scheduledAt: "2026-03-24T15:30:00",
-      status: "completed",
-      callDay: "Day 1",
-    },
-    {
-      id: "S005",
-      patientId: "P005",
-      patientName: "Mohammed Ali",
-      scheduledAt: "2026-03-24T09:00:00",
-      status: "failed",
-      callDay: "Day 7",
-    },
-  ];
+  const { patients } = usePatients();
+  const [triggering, setTriggering] = useState<string | null>(null);
 
-  const pendingCalls = schedules.filter((s) => s.status === "pending");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Generate dynamic schedules (2-3 days gap for 15-30 days)
+  const schedules = patients.flatMap((patient) => {
+    const start = new Date(patient.dischargeDate || new Date());
+    start.setHours(0, 0, 0, 0);
+
+    // Follow-up plan: Days 2, 5, 8, 11, 15, 18, 21, 24, 27, 30
+    const followUpDays = [2, 5, 8, 11, 15, 18, 21, 24, 27, 30]; 
+
+    return followUpDays.map((daysToAdd, index) => {
+      const scheduledDate = new Date(start);
+      scheduledDate.setDate(start.getDate() + daysToAdd);
+      scheduledDate.setHours(9 + (index % 8), 0, 0, 0); // between 9 AM and 4 PM
+
+      let status = "pending";
+      
+      if (scheduledDate < today) {
+         // Past schedule
+         status = Math.random() > 0.3 ? "completed" : "failed";
+      } else if (scheduledDate.getTime() === today.getTime()) {
+         // Today
+         status = "pending";
+      } else {
+         // Future
+         status = "pending";
+      }
+
+      // Ensure some calls are always pending today for simulation if discharge was 2-30 days ago
+      // If none match exactly, let's force the most recent overdue as pending today
+      
+      return {
+        id: `${patient.id}-${daysToAdd}`,
+        patientId: patient.id,
+        patientName: patient.name,
+        scheduledAt: scheduledDate.toISOString(),
+        status: status,
+        callDay: `Day ${daysToAdd}`,
+        language: patient.language || 'English',
+      };
+    });
+  });
+
+  // Filter schedules that are active today or future pending
+  const activeSchedules = schedules.filter(s => {
+      const sDate = new Date(s.scheduledAt);
+      sDate.setHours(0,0,0,0);
+      return sDate.getTime() >= today.getTime();
+  });
+
+  const pendingCalls = activeSchedules.filter((s) => s.status === "pending" || new Date(s.scheduledAt) >= today);
   const completedCalls = schedules.filter((s) => s.status === "completed");
   const failedCalls = schedules.filter((s) => s.status === "failed");
+
+  const handleCallNow = async (patientId: string, language: string) => {
+    try {
+      setTriggering(patientId);
+      await fetchWithAuth('/calls/trigger', {
+        method: "POST",
+        body: JSON.stringify({ patient_id: patientId, language }),
+      });
+      toast.success("Call triggered successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to trigger call");
+    } finally {
+      setTriggering(null);
+    }
+  };
 
   return (
     <div className="p-8">
@@ -245,9 +274,9 @@ export default function Schedule() {
 
                   {/* Action */}
                   {schedule.status === "pending" && (
-                    <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm flex items-center gap-2">
+                    <button disabled={triggering === schedule.patientId} onClick={() => handleCallNow(schedule.patientId, schedule.language)} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm flex items-center gap-2 disabled:opacity-50">
                       <Phone className="w-4 h-4" />
-                      Call Now
+                      {triggering === schedule.patientId ? "Calling..." : "Call Now"}
                     </button>
                   )}
                 </div>
