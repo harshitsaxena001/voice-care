@@ -23,6 +23,20 @@ model Patient {
   @@map("patients")
 }
 
+model VaccinationPatient {
+  id                  String    @id @default(uuid())
+  name                String
+  age                 String?
+  phone_number        String
+  vaccine_name        String
+  dose                String
+  next_date           String
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@map("vaccination_patients")
+}
+
 model CallLog {
   id                    String    @id @default(uuid())
   call_id               String    @unique
