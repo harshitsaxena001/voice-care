@@ -22,6 +22,12 @@ export const getAllPatients = asyncHandler(async (req, res) => {
     }
 
     const patients = await prisma.patient.findMany({
+      include: {
+        call_logs: {
+          orderBy: { created_at: "desc" },
+          take: 1
+        }
+      },
       orderBy: {
         created_at: "desc",
       },

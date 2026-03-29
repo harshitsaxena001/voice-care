@@ -83,7 +83,6 @@ export default function PatientDetail() {
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="w-4 h-4" />
-                  Age: {patient.age}
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Languages className="w-4 h-4" />
