@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { fetchWithAuth } from '../../lib/api';
+import { useState, useEffect } from "react";
+import { fetchWithAuth } from "../../lib/api";
 
 export interface Appointment {
   id: string;
@@ -24,11 +24,11 @@ export const useAppointments = () => {
   const loadAppointments = async () => {
     try {
       setLoading(true);
-      const res = await fetchWithAuth('/patients/appointments');
+      const res = await fetchWithAuth("/patients/appointments");
       setAppointments(res.data || []);
     } catch (err: any) {
       console.error("Failed to load appointments:", err);
-      setError(err.message || 'Failed to load appointments');
+      setError(err.message || "Failed to load appointments");
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ export const useAppointments = () => {
   const approveAppointment = async (id: string) => {
     try {
       await fetchWithAuth(`/patients/appointments/${id}/approve`, {
-        method: 'POST'
+        method: "POST",
       });
       await loadAppointments();
     } catch (err: any) {
@@ -50,5 +50,11 @@ export const useAppointments = () => {
     loadAppointments();
   }, []);
 
-  return { appointments, loading, error, refetch: loadAppointments, approveAppointment };
+  return {
+    appointments,
+    loading,
+    error,
+    refetch: loadAppointments,
+    approveAppointment,
+  };
 };
