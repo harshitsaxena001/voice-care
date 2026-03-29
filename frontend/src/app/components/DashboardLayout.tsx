@@ -6,7 +6,8 @@ import {
   Calendar, 
   Settings,
   Phone,
-  LogOut
+  LogOut,
+  ShieldPlus
 } from 'lucide-react';
 
 const navigation = [
@@ -14,6 +15,7 @@ const navigation = [
   { name: 'Patients', href: '/dashboard/patients', icon: Users },
   { name: 'Alerts', href: '/dashboard/alerts', icon: Bell },
   { name: 'Schedule', href: '/dashboard/schedule', icon: Calendar },
+  { name: 'Vaccinations', href: '/dashboard/vaccinations', icon: ShieldPlus },
   { name: 'Call Logs', href: '/dashboard/calls', icon: Phone },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
