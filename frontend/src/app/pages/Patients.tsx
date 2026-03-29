@@ -4,12 +4,14 @@ import { Search, Filter, ArrowUpDown, Plus } from 'lucide-react';
 import { getRiskBadgeClass, RiskLevel, Patient } from '../data/mockData';
 import { fetchWithAuth } from '../../lib/api';
 import { AddPatientModal } from '../components/AddPatientModal';
+import { ImportPatientsModal } from '../components/ImportPatientsModal';
 
 export default function Patients() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRisk, setSelectedRisk] = useState<RiskLevel | 'all'>('all');
@@ -73,13 +75,21 @@ export default function Patients() {
           <h1 className="text-3xl mb-2 text-primary">Patients</h1>
           <p className="text-muted-foreground">Manage and monitor all discharged patients</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-sm hover:bg-primary/90 transition"
-        >
-          <Plus className="w-5 h-5" />
-          Add Patient
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg shadow-sm hover:bg-secondary/80 transition border border-border"
+          >
+            Import
+          </button>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-sm hover:bg-primary/90 transition"
+          >
+            <Plus className="w-5 h-5" />
+            Add Patient
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -215,6 +225,11 @@ export default function Patients() {
       <AddPatientModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={loadPatients}
+      />
+      <ImportPatientsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
         onSuccess={loadPatients}
       />
     </div>
