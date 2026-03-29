@@ -27,8 +27,21 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Upload, Plus, Download, FileSpreadsheet, Search } from "lucide-react";
+import { Loader2, Upload, Plus, Search, Trash2 } from "lucide-react";
 import { fetchWithAuth } from "../../lib/api";
+import { toast } from "sonner";
+import { ImportVaccinationsModal } from "../components/ImportVaccinationsModal";
+
+type VaccinationRow = {
+  id: string;
+  child_name: string;
+  age: string | null;
+  parents_number: string;
+  vaccine_name: string;
+  dose: string;
+  next_vaccination_date: string;
+  created_at?: string;
+};
 
 const vaccinationSchema = z.object({
   child_name: z.string().min(2, "Name is required"),
@@ -40,10 +53,11 @@ const vaccinationSchema = z.object({
 });
 
 export default function VaccinationSchedule() {
-  const [vaccinations, setVaccinations] = useState([]);
+  const [vaccinations, setVaccinations] = useState<VaccinationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [isImporting, setIsImporting] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const form = useForm({
     resolver: zodResolver(vaccinationSchema),
@@ -73,7 +87,7 @@ export default function VaccinationSchedule() {
     loadVaccinations();
   }, []);
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: any) => {
     try {
       await fetchWithAuth("/vaccinations", {
         method: "POST",
@@ -81,47 +95,30 @@ export default function VaccinationSchedule() {
       });
       loadVaccinations();
       form.reset();
-      // Close modal logic would go here if handled by state
+      toast.success("Added vaccination entry successfully");
     } catch (err) {
-      alert("Failed to add vaccination entry");
+      toast.error("Failed to add vaccination entry");
     }
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleDelete = async (id: string) => {
+    if (deletingId) return;
 
-    setIsImporting(true);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target?.result;
-      const json = csvToJson(text);
-      try {
-        await fetchWithAuth("/vaccinations/import", {
-          method: "POST",
-          body: JSON.stringify({ data: json }),
-        });
-        loadVaccinations();
-        alert("Imported successfully");
-      } catch (err) {
-        alert("Failed to import CSV");
-      } finally {
-        setIsImporting(false);
-      }
-    };
-    reader.readAsText(file);
-  };
+    const previous = vaccinations;
+    setDeletingId(id);
+    setVaccinations((curr) => curr.filter((v) => v.id !== id));
 
-  const csvToJson = (csv) => {
-    const lines = csv.split("\n");
-    const headers = lines[0].split(",");
-    return lines.slice(1).map((line) => {
-      const values = line.split(",");
-      return headers.reduce((obj, header, i) => {
-        obj[header.trim()] = values[i]?.trim();
-        return obj;
-      }, {});
-    });
+    try {
+      await fetchWithAuth(`/vaccinations/${id}`, {
+        method: "DELETE",
+      });
+      toast.success("Deleted vaccination entry");
+    } catch (err: any) {
+      setVaccinations(previous);
+      toast.error(err?.message || "Failed to delete vaccination entry");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const filteredVaccinations = vaccinations.filter(
@@ -142,25 +139,14 @@ export default function VaccinationSchedule() {
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="relative">
-            <Input
-              type="file"
-              accept=".csv"
-              className="hidden"
-              id="csv-upload"
-              onChange={handleFileUpload}
-              disabled={isImporting}
-            />
-            <Button variant="outline" asChild>
-              <label
-                htmlFor="csv-upload"
-                className="cursor-pointer flex items-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                {isImporting ? "Importing..." : "Import CSV"}
-              </label>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Import File
+          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
@@ -271,6 +257,15 @@ export default function VaccinationSchedule() {
         </div>
       </div>
 
+      <ImportVaccinationsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          loadVaccinations();
+          setIsImportModalOpen(false);
+        }}
+      />
+
       <div className="bg-card rounded-xl shadow-md border border-border p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="relative flex-1 max-w-sm">
@@ -294,18 +289,19 @@ export default function VaccinationSchedule() {
                 <TableHead>Vaccine Name</TableHead>
                 <TableHead>Dose</TableHead>
                 <TableHead>Next Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : filteredVaccinations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     No records found
                   </TableCell>
                 </TableRow>
@@ -315,12 +311,27 @@ export default function VaccinationSchedule() {
                     <TableCell className="font-medium">
                       {v.child_name}
                     </TableCell>
-                    <TableCell>{v.age}m</TableCell>
+                    <TableCell>{v.age ?? ""}</TableCell>
                     <TableCell>{v.parents_number}</TableCell>
                     <TableCell>{v.vaccine_name}</TableCell>
                     <TableCell>{v.dose}</TableCell>
                     <TableCell>
                       {new Date(v.next_vaccination_date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDelete(v.id)}
+                        aria-label="Delete vaccination"
+                        disabled={deletingId === v.id}
+                      >
+                        {deletingId === v.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
